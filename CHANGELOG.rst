@@ -18,7 +18,8 @@ First release of the maintained fork of fulfilio/python-magento.
 * Add a test suite (run against a local stand-in for the Magento XML-RPC
   API) and GitHub Actions CI on Python 3.9 to 3.14. The tests confirm every
   documented API (``client.product`` etc.) is available (fulfilio#15).
-* README: fix typos and a broken indent in the examples, explain how to check that a
+* README: fix typos and a broken indent in the examples, explain how to
+  check that a
   connection and credentials work (fulfilio#25), document the
   ``product.create`` data format (fulfilio#27), and explain that
   ``order.search`` needs the Fulfil.IO connector extension and is not in
@@ -28,6 +29,12 @@ First release of the maintained fork of fulfilio/python-magento.
 * Fix ``protocol='soap'``: connecting failed with ``TypeNotFound: (Array,
   http://schemas.xmlsoap.org/soap/encoding/)`` on Magento 1.4.2 and later
   and on OpenMage, whose WSDL does not import the SOAP encoding schema.
+* README: document the cart/checkout call sequence, the valid
+  ``cart_customer.set`` modes (fulfilio#28), that ``cart_shipping.method``
+  needs a rate code from ``cart_shipping.list`` (fulfilio#29), and how to
+  place orders without the new-order email (fulfilio#32). All three were
+  checked against OpenMage; none is a library bug.
+* README: SOAP only works for calls without arguments; use XML-RPC.
 
 3.1 (2019-02-22)
 ----------------
