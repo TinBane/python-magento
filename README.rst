@@ -201,11 +201,13 @@ Calling custom classes from your own API extensions
 ---------------------------------------------------
 
 You can directly invoke the underlying `call` method
-to make calls directly.
+to make calls directly. Unlike the named APIs above, the client itself
+only logs in inside a ``with`` block:
 
 .. code-block:: python
 
-    result = client.call('custom_model.list', [])
+    with client:
+        result = client.call('custom_model.list', [])
 
 
 Alternatively, you can also build sub classes of API to have

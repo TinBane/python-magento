@@ -101,7 +101,20 @@ def test_product_create_sends_type_set_sku_and_data(magento_server):
         'catalog_product.create', ['simple', 4, 'MUG-1', data])
 
 
-def test_multicall(magento_server):
+def test_multicall_returns_faults_in_place(magento_server):
     with magento.API(magento_server.url, USERNAME, PASSWORD) as api:
-        result = api.multiCall([['core_magento.info', []]])
+        result = api.multiCall([
+            ['core_magento.info', []],
+            ['no_such.resource', []],
+        ])
     assert result[0]['magento_version'] == '1.9.4.5'
+    assert result[1] == {
+        'isFault': True, 'faultCode': 3, 'faultMessage': 'Invalid api path.'}
+
+
+def test_direct_call_needs_a_session(magento_server):
+    magento_server.responses['custom_model.list'] = []
+    client = magento.API(magento_server.url, USERNAME, PASSWORD)
+
+    with client:
+        assert client.call('custom_model.list', []) == []

@@ -49,7 +49,19 @@ class FakeMagento(object):
         return self.responses[resource_path]
 
     def multiCall(self, session, calls):
-        return [self.call(session, path, args) for path, args in calls]
+        # Magento reports a failing entry in place and carries on with the
+        # rest of the batch rather than faulting the whole request.
+        results = []
+        for path, args in calls:
+            try:
+                results.append(self.call(session, path, args))
+            except Fault as fault:
+                results.append({
+                    'isFault': True,
+                    'faultCode': fault.faultCode,
+                    'faultMessage': fault.faultString,
+                })
+        return results
 
 
 class _Handler(SimpleXMLRPCRequestHandler):
