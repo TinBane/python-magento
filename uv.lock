@@ -249,7 +249,7 @@ wheels = [
 ]
 
 [[package]]
-name = "magento"
+name = "magento1-client"
 source = { editable = "." }
 dependencies = [
     { name = "six" },

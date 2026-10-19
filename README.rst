@@ -19,7 +19,13 @@ Installation
 
 .. code-block:: sh
 
-    pip install git+https://github.com/TinBane/python-magento@develop
+    pip install magento1-client
+
+The package is published as ``magento1-client`` but is still imported as
+``magento``, so existing code keeps working. Uninstall the old ``magento``
+package first (``pip uninstall magento``); both install the same
+``magento`` module. PyMagento also installs a ``magento`` module, so it
+cannot be installed alongside this one.
 
 Credentials
 -----------

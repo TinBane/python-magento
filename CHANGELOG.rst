@@ -6,6 +6,9 @@ Changelog
 
 First release of the maintained fork of fulfilio/python-magento.
 
+* Published on PyPI as ``magento1-client``; the import name is still
+  ``magento``.
+
 * Requires Python 3.9 or later. Python 2 is no longer supported.
 * Replace the unmaintained ``suds-jurko`` with ``suds-community>=1.0``.
   ``suds-jurko`` does not build with setuptools 58 or later, so 3.1 no
