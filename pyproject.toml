@@ -53,3 +53,6 @@ dev = ["pytest>=8"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["tests"]
+markers = [
+    "openmage: needs a live OpenMage (set OPENMAGE_URL; see dev/openmage)",
+]

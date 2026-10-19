@@ -1,0 +1,43 @@
+# Throwaway OpenMage LTS install for the opt-in integration tests.
+# Use ./bootstrap.sh rather than calling "docker compose up" directly the first
+# time: it also downloads OpenMage, installs it and seeds the test data.
+name: python-magento-openmage
+
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-openmage}
+      MARIADB_USER: ${DB_USER:-openmage}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-openmage}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-openmage-root}
+    command:
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=50
+      - --performance-schema=OFF
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: "no"
+
+  web:
+    build: .
+    image: python-magento-openmage-web:php8.3
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      OPENMAGE_PORT: ${OPENMAGE_PORT:-18080}
+    ports:
+      - "127.0.0.1:${OPENMAGE_PORT:-18080}:${OPENMAGE_PORT:-18080}"
+    volumes:
+      - src:/var/www/html
+    restart: "no"
+
+volumes:
+  db:
+  src:

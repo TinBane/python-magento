@@ -23,6 +23,8 @@ First release of the maintained fork of fulfilio/python-magento.
   ``product.create`` data format (fulfilio#27), and explain that
   ``order.search`` needs the Fulfil.IO connector extension and is not in
   the stock Magento 1 API (fulfilio#26).
+* Add opt-in integration tests against a real OpenMage LTS 20.18 in Docker
+  (``dev/openmage``). They are skipped unless ``OPENMAGE_URL`` is set.
 
 3.1 (2019-02-22)
 ----------------

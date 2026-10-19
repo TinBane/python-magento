@@ -262,6 +262,26 @@ A minimal ``protocol='rest'`` client for the Magento 2 REST API is also
 included, but it only supports GET requests and needs ``requests``
 installed (the ``rest`` extra). For Magento 2 work, PyMagento is the better choice.
 
+Integration tests
+-----------------
+
+``uv run pytest -q`` runs offline against a stand-in for the XML-RPC API,
+and skips the tests in ``tests/integration``. Those run against a real
+OpenMage LTS that ``dev/openmage/bootstrap.sh`` sets up in Docker (PHP 8.3
+with Apache, plus MariaDB). The first run downloads and installs OpenMage
+and creates a test-only API user, a product, a customer, and the flat rate
+and check/money order methods; later runs reuse the install. The test
+credentials are in ``dev/openmage/.env.example``, which the script copies to
+``.env``.
+
+.. code-block:: sh
+
+    dev/openmage/bootstrap.sh
+    OPENMAGE_URL=http://localhost:18080/ uv run pytest -q -m openmage
+    docker compose -f dev/openmage/docker-compose.yml stop    # keeps the install
+    docker compose -f dev/openmage/docker-compose.yml start   # resume later
+    dev/openmage/bootstrap.sh --reset                          # wipe and reinstall
+
 License
 -------
 
