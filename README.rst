@@ -186,8 +186,9 @@ Placing orders without sending the order email
 always sends it when *System > Configuration > Sales Emails > Order >
 Enabled* is on for the store view. To place orders silently, create a
 store view for API orders, set that option to *No* for it, and pass that
-store view's code to every ``cart.*`` call. The email can still be sent
-later from the order page in the admin.
+store view's code to every ``cart.*`` call. Note that the *Send Email*
+button on the admin order page checks the same setting, so it will not
+send emails for orders in that store view either.
 
 Searching orders
 ----------------

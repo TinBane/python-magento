@@ -19,8 +19,7 @@ First release of the maintained fork of fulfilio/python-magento.
   API) and GitHub Actions CI on Python 3.9 to 3.14. The tests confirm every
   documented API (``client.product`` etc.) is available (fulfilio#15).
 * README: fix typos and a broken indent in the examples, explain how to
-  check that a
-  connection and credentials work (fulfilio#25), document the
+  check that a connection and credentials work (fulfilio#25), document the
   ``product.create`` data format (fulfilio#27), and explain that
   ``order.search`` needs the Fulfil.IO connector extension and is not in
   the stock Magento 1 API (fulfilio#26).
