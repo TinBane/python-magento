@@ -25,6 +25,9 @@ First release of the maintained fork of fulfilio/python-magento.
   the stock Magento 1 API (fulfilio#26).
 * Add opt-in integration tests against a real OpenMage LTS 20.18 in Docker
   (``dev/openmage``). They are skipped unless ``OPENMAGE_URL`` is set.
+* Fix ``protocol='soap'``: connecting failed with ``TypeNotFound: (Array,
+  http://schemas.xmlsoap.org/soap/encoding/)`` on Magento 1.4.2 and later
+  and on OpenMage, whose WSDL does not import the SOAP encoding schema.
 
 3.1 (2019-02-22)
 ----------------

@@ -22,10 +22,19 @@ else:
 
 try:
     from suds.client import Client
+    from suds.xsd.doctor import Import, ImportDoctor
 except ImportError:
     pass
 else:
     PROTOCOLS.append('soap')
+
+#: Magento 1.4.2+ and OpenMage ship a SOAP v1 WSDL that uses soapenc:Array
+#: but has the import of the SOAP encoding schema commented out, so suds
+#: fails with ``TypeNotFound: (Array, http://schemas.xmlsoap.org/soap/
+#: encoding/)``. Re-adding the import fixes that; suds resolves it from its
+#: bundled copy, so no network fetch happens, and it is skipped when the WSDL
+#: already imports it.
+SOAP_ENCODING_NS = 'http://schemas.xmlsoap.org/soap/encoding/'
 
 from . import rest
 try:
@@ -163,7 +172,8 @@ class API(object):
             self.client = rest.Client(self.url, self.password,
                                       verify_ssl=self.verify_ssl)
         else:
-            self.client = Client(self.url)
+            self.client = Client(
+                self.url, doctor=ImportDoctor(Import(SOAP_ENCODING_NS)))
 
     def __enter__(self):
         """
