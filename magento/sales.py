@@ -36,6 +36,12 @@ class Order(API):
         Retrieve order list by options using search api. Using this result can
         be paginated
 
+        .. note:: ``sales_order.search`` is not part of the stock Magento 1
+                  API. It needs the Fulfil.IO / Openlabs connector extension
+                  installed on the Magento side; without it Magento answers
+                  with ``Fault 3: Invalid api path``. Use :meth:`list` on a
+                  stock install.
+
         :param options: Dictionary of options.
 
         :param filters: `{<attribute>:{<operator>:<value>}}`

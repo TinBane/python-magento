@@ -1,7 +1,33 @@
 Magento Python API
 ==================
 
-Python library to connect to Magento Webservices.
+Python client for the Magento 1 Core API (XML-RPC and SOAP). It works with
+Magento 1.x and with `OpenMage LTS <https://www.openmage.org/>`_, the
+maintained continuation of Magento 1.
+
+This is a maintained fork of `fulfilio/python-magento
+<https://github.com/fulfilio/python-magento>`_, which has had no release
+since 2019. Version 4.0 runs on Python 3.9 and later and replaces the
+unmaintained ``suds-jurko`` dependency with ``suds-community``, so it
+installs on current Python and setuptools again.
+
+**Magento 2 / Adobe Commerce:** this library talks to the Magento 1 API.
+For Magento 2 use `PyMagento <https://github.com/Bixoto/PyMagento>`_.
+
+Installation
+------------
+
+.. code-block:: sh
+
+    pip install git+https://github.com/TinBane/python-magento@develop
+
+Credentials
+-----------
+
+The username and password are those of a *Web Services* user, not a
+Magento admin login. Create one in the Magento admin under
+*System > Web Services > SOAP/XML-RPC - Users*, and give it a role under
+*SOAP/XML-RPC - Roles* that allows the resources you need.
 
 Usage
 -----
@@ -17,22 +43,96 @@ Usage
     # Create an instance of API
     client = magento.API(url, apiuser, apipass)
 
-    # A filter expression as dictionary. 
-    order_filter = {'created_at':{'from':'2011-09-15 00:00:00'}}
-    products = client.product.list(order_filter)
+    # A filter expression as dictionary.
+    product_filter = {'created_at': {'from': '2011-09-15 00:00:00'}}
+    products = client.product.list(product_filter)
 
     # Get a list of product types
     product_types = client.product_types.list()
-        
+
     # Get a specific product
     sku = 'prod1'
     product = client.product.info(sku)
 
     # Add comment to an order
-    order_increment_id = '100000001 '
+    order_increment_id = '100000001'
     status = 'canceled'
     client.order.addcomment(order_increment_id, status)
 
+Each API (``client.product``, ``client.order``, ...) logs in the first
+time you use it and keeps its session for later calls.
+
+Checking the connection
+-----------------------
+
+``client.connect()`` only builds the connection object; it does not
+contact Magento. To check that the URL and credentials work, make a cheap
+call and catch the error:
+
+.. code-block:: python
+
+    from xmlrpc.client import Fault, ProtocolError
+
+    client = magento.API(url, apiuser, apipass)
+    try:
+        info = client.magento.info()
+    except Fault as e:
+        # e.g. Fault 2 'Access denied.' for a wrong user or API key
+        print('Magento refused the call:', e.faultCode, e.faultString)
+    except (ProtocolError, OSError) as e:
+        # wrong URL (e.g. 404 at index.php/api/xmlrpc) or host unreachable
+        print('Could not reach the API:', e)
+    else:
+        print('Connected to Magento', info['magento_version'])
+
+Filters
+-------
+
+The ``list`` methods take filters in Magento's
+``{<attribute>: {<operator>: <value>}}`` format, for example
+``{'status': {'eq': 'pending'}}`` or ``{'sku': {'like': 'MUG-%'}}``.
+Operators include ``eq``, ``neq``, ``like``, ``in``, ``nin``, ``gt``,
+``lt``, ``gteq``, ``lteq``, ``from`` and ``to``.
+
+Creating a product
+------------------
+
+``client.product.create(product_type, attribute_set_id, sku, data)``
+takes the product type (``'simple'``, ``'configurable'``, ...), the ID of
+an attribute set, the SKU, and a dictionary of attribute values. The SKU
+is passed on its own and does not go in ``data``.
+
+.. code-block:: python
+
+    # Find the attribute set to use ('Default' is usually 4)
+    attribute_sets = client.product_attribute_set.list()
+
+    product_id = client.product.create('simple', 4, 'MUG-1', {
+        'name': 'Coffee mug',
+        'description': 'A large coffee mug',
+        'short_description': 'Coffee mug',
+        'price': '9.95',
+        'weight': '0.4',
+        'status': 1,            # 1 = enabled, 2 = disabled
+        'visibility': 4,        # 4 = catalog and search
+        'tax_class_id': 2,      # 2 = taxable goods on a default install
+        'websites': [1],
+        'stock_data': {'qty': 10, 'is_in_stock': 1},
+    })
+
+``Fault 102: 'Invalid data given'`` usually means a required attribute of
+the attribute set is missing from ``data``, or a value has the wrong
+format. Look at an existing product with ``client.product.info(sku)`` to
+see the attribute names and formats your store expects.
+
+Searching orders
+----------------
+
+``client.order.search()`` calls ``sales_order.search``, which is not part
+of the stock Magento 1 API. It needs the Fulfil.IO / Openlabs connector
+extension on the Magento side; without it Magento answers
+``Fault 3: Invalid api path``. On a stock install use
+``client.order.list(filters)`` instead.
 
 All available APIs
 -------------------
@@ -66,12 +166,12 @@ All available APIs
 * Shipment (`client.shipment`)
 * Store (`client.store`)
 
-Old deprecated example
-----------------------
+Old style: one API object per resource
+--------------------------------------
 
 The API was originally written with the requirement to call APIs
 individually with all the credentials. This led to very verbose code and a
-lot of repitition. While the behavior has not been deprecated, it is
+lot of repetition. While the behavior has not been deprecated, it is
 recommended to write all new code with the pattern shown in the above
 example.
 
@@ -84,7 +184,7 @@ example.
     apipass = 'password'
 
     with magento.Order(url, apiuser, apipass) as order_api:
-        order_increment_id = '100000001 '
+        order_increment_id = '100000001'
         status = 'canceled'
         order_api.addcomment(order_increment_id, status)
 
@@ -93,14 +193,14 @@ example.
         store_view_info = store_api.info(store_id)
         store_views = store_api.list()
 
-     with magento.Magento(url, apiuser, apipass) as magento_api:
+    with magento.Magento(url, apiuser, apipass) as magento_api:
         magento_info = magento_api.info()
 
 
 Calling custom classes from your own API extensions
 ---------------------------------------------------
 
-You can ddirectly invoke the underlying `call` method
+You can directly invoke the underlying `call` method
 to make calls directly.
 
 .. code-block:: python
@@ -116,6 +216,8 @@ To ensure that they are registered before you create the first API
 instance, always have all your imports on the top of your magento module.
 
 .. code-block:: python
+
+    from magento.api import API
 
     class CustomModel(API):
         def list(self):
@@ -138,6 +240,19 @@ metaclass. So you can now use
     
     client.custom_model.list()
 
+Protocols
+---------
+
+XML-RPC is the default. Pass ``protocol='soap'`` to use the SOAP v1 API
+instead:
+
+.. code-block:: python
+
+    client = magento.API(url, apiuser, apipass, protocol='soap')
+
+A minimal ``protocol='rest'`` client for the Magento 2 REST API is also
+included, but it only supports GET requests and needs ``requests``
+installed (the ``rest`` extra). For Magento 2 work, PyMagento is the better choice.
 
 License
 -------
