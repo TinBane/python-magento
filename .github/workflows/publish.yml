@@ -1,8 +1,12 @@
 name: publish
 
+# Runs when a GitHub release is published. Needs a trusted publisher for
+# magento1-client on PyPI (owner TinBane, repo python-magento, workflow
+# publish.yml, environment pypi). 4.0.0 was uploaded by hand before that
+# was set up.
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
 
 jobs:
   publish:

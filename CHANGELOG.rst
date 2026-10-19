@@ -1,7 +1,7 @@
 Changelog
 =========
 
-4.0.0 (unreleased)
+4.0.0 (2026-10-19)
 ------------------
 
 First release of the maintained fork of fulfilio/python-magento.
