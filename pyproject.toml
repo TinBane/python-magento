@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "magento1-client"
+dynamic = ["version"]
+description = "Magento 1 / OpenMage Core API client (XML-RPC and SOAP)"
+readme = "README.rst"
+license = { file = "LICENSE" }
+authors = [{ name = "Sharoon Thomas, Openlabs Technologies", email = "info@fulfil.io" }]
+maintainers = [{ name = "Adrian Beale" }]
+requires-python = ">=3.9"
+dependencies = [
+    "suds-community>=1.0",
+    "six",
+]
+classifiers = [
+    "Development Status :: 6 - Mature",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+rest = ["requests"]
+
+[project.urls]
+Homepage = "https://github.com/TinBane/python-magento"
+Issues = "https://github.com/TinBane/python-magento/issues"
+Changelog = "https://github.com/TinBane/python-magento/blob/develop/CHANGELOG.rst"
+
+[tool.setuptools]
+packages = ["magento"]
+
+[tool.setuptools.dynamic]
+version = { attr = "magento.version.VERSION" }
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
