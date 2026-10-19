@@ -131,6 +131,65 @@ the attribute set is missing from ``data``, or a value has the wrong
 format. Look at an existing product with ``client.product.info(sku)`` to
 see the attribute names and formats your store expects.
 
+Placing an order through the cart API
+-------------------------------------
+
+The cart calls have to run in this order, all with the same store view.
+Without ``store_view`` the cart is created in the admin store (ID 0), and
+the order ends up there too.
+
+.. code-block:: python
+
+    store = 'default'   # store view code or ID
+    address = {
+        'firstname': 'Jane', 'lastname': 'Doe', 'street': '1 Main Street',
+        'city': 'Austin', 'region_id': '57', 'postcode': '73301',
+        'country_id': 'US', 'telephone': '5125550100',
+    }
+
+    quote = client.cart.create(store)
+    client.cart_product.add(quote, [{'sku': 'MUG-1', 'qty': 1}], store)
+    client.cart_customer.set(quote, {
+        'mode': 'guest',
+        'firstname': 'Jane', 'lastname': 'Doe',
+        'email': 'jane@example.com',
+    }, store)
+    client.cart_customer.addresses(quote, [
+        dict(address, mode='billing'),
+        dict(address, mode='shipping'),
+    ], store)
+
+    # Pick a rate code from the list, e.g. 'flatrate_flatrate'
+    rates = client.cart_shipping.list(quote, store)
+    client.cart_shipping.method(quote, rates[0]['code'], store)
+
+    client.cart_payment.method(quote, {'method': 'checkmo'}, store)
+    order_increment_id = client.cart.order(quote, store)
+
+Common errors:
+
+* **Setting the customer fails** (fulfilio#28). ``mode`` must be
+  ``'guest'``, ``'register'`` (also needs ``password``) or ``'customer'``
+  (needs ``customer_id`` of an existing customer). A missing mode gives
+  ``Fault 1045``; any other value, such as ``'admin'``, crashes inside
+  Magento (``Fault 1`` or an HTTP 500 on PHP 8).
+* **Fault 1062: 'Shipping method is not available'** (fulfilio#29).
+  ``cart_shipping.method`` takes the rate ``code`` string from
+  ``cart_shipping.list`` (``'flatrate_flatrate'``), not the carrier name,
+  title or a dictionary. ``Fault 1061`` means the shipping address has not
+  been set yet.
+
+Placing orders without sending the order email
+----------------------------------------------
+
+``cart.order`` cannot skip the new-order email (fulfilio#32): Magento
+always sends it when *System > Configuration > Sales Emails > Order >
+Enabled* is on for the store view. To place orders silently, create a
+store view for API orders, set that option to *No* for it, and pass that
+store view's code to every ``cart.*`` call. Note that the *Send Email*
+button on the admin order page checks the same setting, so it will not
+send emails for orders in that store view either.
+
 Searching orders
 ----------------
 
@@ -258,9 +317,34 @@ instead:
 
     client = magento.API(url, apiuser, apipass, protocol='soap')
 
+SOAP support is limited: suds cannot encode list or dictionary arguments
+for Magento's SOAP v1 API, so only calls without arguments (such as
+``client.magento.info()``) work over SOAP. Use XML-RPC for everything
+else.
+
 A minimal ``protocol='rest'`` client for the Magento 2 REST API is also
 included, but it only supports GET requests and needs ``requests``
 installed (the ``rest`` extra). For Magento 2 work, PyMagento is the better choice.
+
+Integration tests
+-----------------
+
+``uv run pytest -q`` runs offline against a stand-in for the XML-RPC API,
+and skips the tests in ``tests/integration``. Those run against a real
+OpenMage LTS that ``dev/openmage/bootstrap.sh`` sets up in Docker (PHP 8.3
+with Apache, plus MariaDB). The first run downloads and installs OpenMage
+and creates a test-only API user, a product, a customer, and the flat rate
+and check/money order methods; later runs reuse the install. The test
+credentials are in ``dev/openmage/.env.example``, which the script copies to
+``.env``.
+
+.. code-block:: sh
+
+    dev/openmage/bootstrap.sh
+    OPENMAGE_URL=http://localhost:18080/ uv run pytest -q -m openmage
+    docker compose -f dev/openmage/docker-compose.yml stop    # keeps the install
+    docker compose -f dev/openmage/docker-compose.yml start   # resume later
+    dev/openmage/bootstrap.sh --reset                          # wipe and reinstall
 
 License
 -------

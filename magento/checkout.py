@@ -155,11 +155,12 @@ class CartCustomer(API):
             {
                 'firstname': 'testFirstname',
                 'lastname': 'testLastName',
-                'email': 'testEmail',
-                'website_id': '0',
-                'store_id': '0',
+                'email': 'test@example.com',
                 'mode': 'guest'
             }
+            ``mode`` must be 'guest', 'register' (also needs 'password')
+            or 'customer' (needs 'customer_id'). Magento rejects a missing
+            mode and crashes on any other value.
         :param store_view: Store view ID or code
         :return: boolean, True if information added
         """
@@ -362,7 +363,10 @@ class CartShipping(API):
         Allows you to set a shipping method for a shopping cart (quote).
 
         :param quote_id: Shopping cart ID (quote ID)
-        :param shipping_method, string, shipping method code
+        :param shipping_method, string, shipping rate code, e.g.
+            'flatrate_flatrate'. Use the ``code`` of an entry returned by
+            :meth:`list`; the carrier name or title gives Fault 1062.
+            The shipping address must be set first (Fault 1061).
         :param store_view: Store view ID or code
         :return: boolean, True if the shipping method is set
         """
